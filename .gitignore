@@ -1,40 +1,48 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
 
-# Virtual environments
+# Virtual Environment
 venv/
+env/
 fastenv/
 .venv/
-env/
 
-# Environment variables
+# Environment Variables
 .env
 
 # VS Code
 .vscode/
 
-# Python caches
+# Python cache
 .pytest_cache/
 .mypy_cache/
 
 # Logs
 *.log
 
-# Databases
+# Database
 *.db
 *.sqlite3
 
 # ChromaDB
 chroma_db/
 
-# Uploaded data
+# Uploaded files
 data/
+
+# Temporary
+temp/
+tmp/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Build
 build/
 dist/
 
-# OS files
-.DS_Store
-Thumbs.db
+# Jupyter
+.ipynb_checkpoints/
