@@ -37,8 +37,13 @@ from langgraph.types import (
 
 from agents.email_agent import (
     email_agent,
+    prepare_new_email,
+    list_recent_emails,
+    prepare_broadcast_email,
+    analyze_complaint_emails,
     send_email_replies,
-    send_new_email
+    send_new_email,
+    send_broadcast_emails
 )
 
 from agents.rag_agent import (
@@ -55,7 +60,8 @@ from memory.memory_store import (
 
 from tools.n8n_client import (
     send_slack_message,
-    create_calendar_event
+    create_calendar_event,
+    get_calendar_events
 )
 
 
@@ -219,6 +225,23 @@ def memory_save_node(
 
 
     # ======================================================
+    # APPROVED BROADCAST EMAIL
+    # ======================================================
+
+    if (
+
+        approved is True
+
+        and query_type == "email_broadcast"
+
+    ):
+
+        state = send_broadcast_emails(
+            state
+        )
+
+
+    # ======================================================
     # APPROVED CALENDAR EVENT
     # (this branch did not exist before — calendar requests
     # were routed to research_agent and never actually
@@ -259,6 +282,11 @@ def memory_save_node(
                         ""
                     ),
 
+                    duration=args.get(
+                        "duration",
+                        ""
+                    ),
+
                     description=args.get(
                         "description",
                         ""
@@ -295,6 +323,80 @@ def memory_save_node(
             print(
                 "[memory_save] Calendar approved but no "
                 "proposed_actions found — nothing to create."
+            )
+
+
+    # ======================================================
+    # APPROVED SLACK MESSAGE
+    # (new — Slack requests previously had no execution path
+    # at all since they never had a dedicated query_type)
+    # ======================================================
+
+    if (
+
+        approved is True
+
+        and query_type == "slack"
+
+    ):
+
+        proposed = state.get(
+            "proposed_actions",
+            []
+        )
+
+        if proposed:
+
+            args = proposed[0].get(
+                "args",
+                {}
+            )
+
+            try:
+
+                success = send_slack_message(
+
+                    channel=args.get(
+                        "channel",
+                        "#general"
+                    ),
+
+                    message=args.get(
+                        "message",
+                        ""
+                    )
+
+                )
+
+                print(
+                    f"[memory_save] Slack message sent: {success}"
+                )
+
+                state = {
+
+                    **state,
+
+                    "messages": (
+
+                        state.get("messages", [])
+
+                        + [f"[Slack] Message sent: {success}"]
+
+                    )
+
+                }
+
+            except Exception as e:
+
+                print(
+                    f"[memory_save] Slack send error: {e}"
+                )
+
+        else:
+
+            print(
+                "[memory_save] Slack approved but no "
+                "proposed_actions found — nothing to send."
             )
 
 
@@ -552,7 +654,7 @@ def route_after_specialist(
         "research"
     )
 
-    if query_type in ("document", "research"):
+    if query_type in ("document", "research", "calendar_read", "email_read"):
 
         return "auto_complete"
 
@@ -579,6 +681,194 @@ def supervisor_node(
 
 
     query_lower = query.lower()
+
+
+    # ======================================================
+    # EXPLICIT EMAIL READ PRIORITY
+    # (checked BEFORE compose-email keywords — "enlist recent
+    # emails", "list emails", "show my inbox" etc. are reads,
+    # not requests to draft a new email. Previously these fell
+    # through to query_type="email", which only knows how to
+    # draft a NEW email — it would fail with "No recipient
+    # email found" since there's nothing to draft.)
+    # ======================================================
+
+    email_read_verbs = [
+
+        "list",
+
+        "enlist",
+
+        "show",
+
+        "view",
+
+        "check",
+
+        "read",
+
+        "what's in",
+
+        "whats in"
+
+    ]
+
+    email_read_nouns = [
+
+        "email",
+
+        "emails",
+
+        "inbox",
+
+        "mail"
+
+    ]
+
+    has_email_read_verb = any(
+
+        verb in query_lower
+
+        for verb in email_read_verbs
+
+    )
+
+    has_email_read_noun = any(
+
+        noun in query_lower
+
+        for noun in email_read_nouns
+
+    )
+
+    if has_email_read_verb and has_email_read_noun:
+
+        print(
+
+            "[Supervisor] "
+            "Explicit email READ (list/view inbox) detected"
+
+        )
+
+
+        return {
+
+            "query_type": "email_read"
+
+        }
+
+
+    # ======================================================
+    # EXPLICIT SLACK PRIORITY
+    # (new — this category never existed before. Slack requests
+    # had nowhere correct to go in classification, so they fell
+    # through to the LLM classifier, which only ever knew about
+    # email/calendar/document/research/complaint and forced
+    # Slack messages into "email" — hence "send message to
+    # slack hello everyone!" showing an Email Approval Request.
+    # Checked BEFORE the broadcast-email check since "send" +
+    # "message" alone would otherwise look like a broadcast.)
+    # ======================================================
+
+    if "slack" in query_lower:
+
+        print(
+
+            "[Supervisor] "
+            "Explicit Slack message detected"
+
+        )
+
+
+        return {
+
+            "query_type": "slack"
+
+        }
+
+
+    # ======================================================
+    # EXPLICIT BROADCAST EMAIL PRIORITY
+    # (checked BEFORE compose-email keywords — "email to all
+    # employees" contains "email to", which would otherwise
+    # match the compose flow below and try to extract ONE
+    # literal recipient address, always failing since "all
+    # employees" isn't an address.)
+    # ======================================================
+
+    broadcast_send_verbs = [
+
+        "email",
+
+        "notify",
+
+        "send",
+
+        "mail",
+
+        "message"
+
+    ]
+
+    broadcast_target_phrases = [
+
+        "all employees",
+
+        "all staff",
+
+        "everyone in the company",
+
+        "entire company",
+
+        "whole company",
+
+        "the whole company",
+
+        "whole team",
+
+        "entire team",
+
+        "all users",
+
+        "everybody",
+
+        "all members",
+
+        "all my employees"
+
+    ]
+
+    has_broadcast_verb = any(
+
+        verb in query_lower
+
+        for verb in broadcast_send_verbs
+
+    )
+
+    has_broadcast_target = any(
+
+        phrase in query_lower
+
+        for phrase in broadcast_target_phrases
+
+    )
+
+    if has_broadcast_verb and has_broadcast_target:
+
+        print(
+
+            "[Supervisor] "
+            "Broadcast email to all employees detected"
+
+        )
+
+
+        return {
+
+            "query_type": "email_broadcast"
+
+        }
 
 
     # ======================================================
@@ -636,6 +926,91 @@ def supervisor_node(
         return {
 
             "query_type": query_type
+
+        }
+
+
+    # ======================================================
+    # EXPLICIT CALENDAR READ PRIORITY
+    # (checked BEFORE create-keywords — a request to list/view
+    # events is a read, needs no approval, and must never be
+    # classified as "calendar" (create).
+    #
+    # FIX: this used to match on a standalone "enlist" keyword,
+    # which incorrectly hijacked unrelated requests like
+    # "enlist most recent emails in the inbox" into the
+    # calendar path. Now requires BOTH a listing verb AND a
+    # calendar-specific noun to be present, so a listing verb
+    # alone is never enough.
+    # ======================================================
+
+    calendar_read_verbs = [
+
+        "list",
+
+        "enlist",
+
+        "show",
+
+        "view",
+
+        "check",
+
+        "what's on",
+
+        "whats on",
+
+        "upcoming"
+
+    ]
+
+    calendar_read_nouns = [
+
+        "event",
+
+        "events",
+
+        "calendar",
+
+        "schedule",
+
+        "scheduled",
+
+        "meeting",
+
+        "meetings"
+
+    ]
+
+    has_read_verb = any(
+
+        verb in query_lower
+
+        for verb in calendar_read_verbs
+
+    )
+
+    has_calendar_noun = any(
+
+        noun in query_lower
+
+        for noun in calendar_read_nouns
+
+    )
+
+    if has_read_verb and has_calendar_noun:
+
+        print(
+
+            "[Supervisor] "
+            "Explicit calendar READ (list/view) detected"
+
+        )
+
+
+        return {
+
+            "query_type": "calendar_read"
 
         }
 
@@ -712,6 +1087,14 @@ document
 research
 complaint
 calendar
+calendar_read
+slack
+
+
+SLACK:
+
+Use slack when the user wants to post/send a message to
+Slack or a team channel.
 
 
 EMAIL:
@@ -753,9 +1136,17 @@ or process complaint emails.
 
 CALENDAR:
 
-Use calendar when the user wants
-to schedule a meeting or event,
-or create a calendar entry.
+Use calendar ONLY when the user wants to
+CREATE, schedule, or book a new meeting
+or event.
+
+
+CALENDAR_READ:
+
+Use calendar_read when the user wants to
+VIEW, list, show, or check existing
+calendar events or their schedule —
+no new event is being created.
 
 Return ONLY ONE WORD.
 """
@@ -795,9 +1186,19 @@ Return ONLY ONE WORD.
     )
 
 
-    if "calendar" in raw:
+    if "calendar_read" in raw:
+
+        query_type = "calendar_read"
+
+
+    elif "calendar" in raw:
 
         query_type = "calendar"
+
+
+    elif "slack" in raw:
+
+        query_type = "slack"
 
 
     elif "complaint" in raw:
@@ -853,13 +1254,21 @@ def supervisor_router(
 
         "email": "email_agent",
 
-        "complaint": "email_agent",
+        "email_read": "email_read_agent",
+
+        "email_broadcast": "email_broadcast_agent",
+
+        "complaint": "complaint_agent",
 
         "document": "rag_agent",
 
         "research": "research_agent",
 
-        "calendar": "calendar_agent"
+        "calendar": "calendar_agent",
+
+        "calendar_read": "calendar_read_agent",
+
+        "slack": "slack_agent"
 
     }.get(
 
@@ -1038,15 +1447,19 @@ RULES:
 1. Extract a concise event title.
 2. Extract the date/time exactly as given. If no date/time is
    mentioned, leave it as an empty string — do not invent one.
-3. Extract a description only if explicitly present. Do not
+3. Extract the duration/end time if mentioned (e.g. "for 1
+   hour", "until 6pm", "for 30 minutes"). If not mentioned,
+   leave it as an empty string — do not invent one.
+4. Extract a description only if explicitly present. Do not
    invent details, locations, attendees, or times.
-4. Output ONLY valid JSON.
+5. Output ONLY valid JSON.
 
 OUTPUT FORMAT:
 
 {{
     "title": "event title",
     "date": "date or datetime as given, or empty string",
+    "duration": "duration/end time as given, or empty string",
     "description": "event description or empty string"
 }}
 """
@@ -1080,6 +1493,8 @@ OUTPUT FORMAT:
 
             "date": "",
 
+            "duration": "",
+
             "description": query
 
         }
@@ -1099,6 +1514,11 @@ OUTPUT FORMAT:
 
                 "start": event_data.get(
                     "date",
+                    ""
+                ),
+
+                "duration": event_data.get(
+                    "duration",
                     ""
                 ),
 
@@ -1150,6 +1570,224 @@ OUTPUT FORMAT:
 
 
 # ==========================================================
+# SLACK AGENT
+# (new — Slack requests previously had no dedicated workflow
+# at all and were misclassified into the email flow. This
+# extracts channel + message and proposes a Send_Slack action,
+# gated by the same human-approval flow as everything else.)
+# ==========================================================
+
+def slack_agent_node(
+    state: AgentState
+) -> AgentState:
+
+    print(
+        "[Slack Agent] Preparing Slack message proposal..."
+    )
+
+    query = state.get(
+        "query",
+        ""
+    )
+
+    # --------------------------------------------------------
+    # FIX: this node never fetched real calendar data, so it
+    # could only write generic text like "the scheduled event
+    # is still on track" instead of the actual title/time —
+    # mirrors _maybe_fetch_calendar_context in email_agent.py.
+    # --------------------------------------------------------
+
+    calendar_context = ""
+
+    event_words = [
+        "event", "meeting", "schedule", "scheduled", "appointment"
+    ]
+
+    if any(word in query.lower() for word in event_words):
+
+        try:
+
+            cal_result = get_calendar_events(query)
+
+            calendar_context = cal_result.get("message", "") or ""
+
+        except Exception as e:
+
+            print(
+                f"[Slack Agent] Calendar context lookup failed: {e}"
+            )
+
+    calendar_section = (
+
+        f"\nCALENDAR CONTEXT (real event data — use this to fill "
+        f"in the actual title/date/time; do not invent anything "
+        f"beyond what's here):\n{calendar_context}\n"
+
+        if calendar_context
+
+        else ""
+
+    )
+
+    prompt = f"""
+You are a Slack message drafting assistant.
+
+The user wants to send a Slack message.
+
+Extract the target channel and the message text.
+
+USER REQUEST:
+{query}
+{calendar_section}
+
+RULES:
+
+1. Extract the channel if mentioned (e.g. "#general"). If no
+   channel is mentioned, use "#general" as the default.
+2. If CALENDAR CONTEXT is present above and the user refers to
+   an event, use those real details (title/date/time) in the
+   message instead of generic phrasing.
+3. Do not invent details beyond the user request and, if
+   present, CALENDAR CONTEXT.
+4. Output ONLY valid JSON.
+
+OUTPUT FORMAT:
+
+{{
+    "channel": "#channel-name",
+    "message": "the message text"
+}}
+"""
+
+    try:
+
+        response = llm.invoke(prompt)
+
+        content = response.content.strip()
+
+        if content.startswith("```"):
+
+            content = (
+                content
+                .replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
+
+        slack_data = json.loads(content)
+
+    except Exception as e:
+
+        print(
+            f"[Slack Agent] Extraction error: {e}"
+        )
+
+        slack_data = {
+
+            "channel": "#general",
+
+            "message": query
+
+        }
+
+    proposed_actions = [
+
+        {
+
+            "tool": "Send_Slack",
+
+            "args": {
+
+                "channel": slack_data.get("channel", "#general"),
+
+                "message": slack_data.get("message", query)
+
+            }
+
+        }
+
+    ]
+
+    print(
+        f"[Slack Agent] Proposed message: {proposed_actions[0]['args']}"
+    )
+
+    report_text = generate_report(
+
+        query=query,
+
+        query_type="slack",
+
+        proposed_actions=proposed_actions
+
+    )
+
+    return {
+
+        "proposed_actions": proposed_actions,
+
+        "report": report_text
+
+    }
+
+
+# ==========================================================
+# CALENDAR READ AGENT
+# (new — read-only lookups like "list my events this week".
+# No proposed_actions, no approval needed — this just fetches
+# and displays, same category as document/research queries.)
+# ==========================================================
+
+def calendar_read_agent_node(
+    state: AgentState
+) -> AgentState:
+
+    print(
+        "[Calendar Read Agent] Fetching calendar events..."
+    )
+
+    query = state.get(
+        "query",
+        ""
+    )
+
+    try:
+
+        result = get_calendar_events(query)
+
+        message = result.get("message", "")
+
+        if not message:
+
+            message = "No calendar events were found for this request."
+
+    except Exception as e:
+
+        print(
+            f"[Calendar Read Agent] Error fetching events: {e}"
+        )
+
+        message = (
+            "Sorry, I couldn't retrieve calendar events "
+            "right now — the calendar service may be unavailable."
+        )
+
+    report_text = f"# Calendar Events\n\n{message}"
+
+    print(
+        f"[Calendar Read Agent] Done — {len(report_text)} chars"
+    )
+
+    return {
+
+        "report": report_text,
+
+        "proposed_actions": []
+
+    }
+
+
+# ==========================================================
 # BUILD GRAPH
 # ==========================================================
 
@@ -1167,10 +1805,15 @@ def build_supervisor_graph():
     graph.add_node("memory_load", memory_load_node)
     graph.add_node("supervisor", supervisor_node)
     graph.add_node("planner", planner_node)
-    graph.add_node("email_agent", email_agent)
+    graph.add_node("email_agent", prepare_new_email)
+    graph.add_node("email_read_agent", list_recent_emails)
+    graph.add_node("email_broadcast_agent", prepare_broadcast_email)
+    graph.add_node("complaint_agent", analyze_complaint_emails)
     graph.add_node("rag_agent", rag_agent)
     graph.add_node("research_agent", research_agent_node)
     graph.add_node("calendar_agent", calendar_agent_node)
+    graph.add_node("calendar_read_agent", calendar_read_agent_node)
+    graph.add_node("slack_agent", slack_agent_node)
     graph.add_node("human_review", human_review)
     graph.add_node("memory_save", memory_save_node)
     graph.add_node("auto_complete", auto_complete_node)
@@ -1199,11 +1842,21 @@ def build_supervisor_graph():
 
             "email_agent": "planner",
 
+            "email_read_agent": "planner",
+
+            "email_broadcast_agent": "planner",
+
+            "complaint_agent": "planner",
+
             "rag_agent": "planner",
 
             "research_agent": "planner",
 
-            "calendar_agent": "planner"
+            "calendar_agent": "planner",
+
+            "calendar_read_agent": "planner",
+
+            "slack_agent": "planner"
 
         }
 
@@ -1224,11 +1877,21 @@ def build_supervisor_graph():
 
             "email_agent": "email_agent",
 
+            "email_read_agent": "email_read_agent",
+
+            "email_broadcast_agent": "email_broadcast_agent",
+
+            "complaint_agent": "complaint_agent",
+
             "rag_agent": "rag_agent",
 
             "research_agent": "research_agent",
 
-            "calendar_agent": "calendar_agent"
+            "calendar_agent": "calendar_agent",
+
+            "calendar_read_agent": "calendar_read_agent",
+
+            "slack_agent": "slack_agent"
 
         }
 
@@ -1247,9 +1910,14 @@ def build_supervisor_graph():
 
     for specialist_node in (
         "email_agent",
+        "email_read_agent",
+        "email_broadcast_agent",
+        "complaint_agent",
         "rag_agent",
         "research_agent",
-        "calendar_agent"
+        "calendar_agent",
+        "calendar_read_agent",
+        "slack_agent"
     ):
 
         graph.add_conditional_edges(

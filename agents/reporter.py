@@ -180,6 +180,65 @@ The email is prepared and is waiting for human approval before it is sent.
 
 
     # ======================================================
+    # SLACK MESSAGE REQUEST
+    # (this branch was MISSING — generate_report(query_type=
+    # "slack", ...) had nowhere to match, so it fell through
+    # to the final "else" and produced a Research Report
+    # instead of a Slack approval screen.)
+    # ======================================================
+
+    elif query_type == "slack":
+
+        slack_args = (
+            proposed_actions[0].get("args", {})
+            if proposed_actions
+            else {}
+        )
+
+        prompt = f"""
+You are the final review and approval preparation agent.
+
+The user requested a Slack message to be sent.
+
+Your job is to display the prepared message clearly for human approval.
+
+USER REQUEST:
+{query}
+
+PROPOSED MESSAGE:
+Channel: {slack_args.get('channel', '')}
+Message: {slack_args.get('message', '')}
+
+
+IMPORTANT RULES:
+
+1. Do not create a research report or an analysis section.
+
+2. Do not invent information not present above.
+
+3. Clearly state that the message is awaiting human approval
+   before it is sent.
+
+
+Return ONLY the following format:
+
+# Slack Message Approval Request
+
+## Channel
+
+[channel]
+
+## Message
+
+[message]
+
+## Approval Required
+
+This message is prepared and is waiting for human approval before it is sent.
+"""
+
+
+    # ======================================================
     # CALENDAR REQUEST
     # ======================================================
 
@@ -239,6 +298,93 @@ Return ONLY the following format:
 ## Approval Required
 
 The event is prepared and is waiting for human approval before it is created.
+"""
+
+
+    # ======================================================
+    # BROADCAST EMAIL REQUEST
+    # ======================================================
+
+    elif query_type == "email_broadcast":
+
+        broadcast_args = (
+            proposed_actions[0].get("args", {})
+            if proposed_actions
+            else {}
+        )
+
+        recipient_count = broadcast_args.get("recipient_count", 0)
+
+        recipients_preview = ", ".join(
+
+            broadcast_args.get("recipients", [])[:10]
+
+        )
+
+        if broadcast_args.get("recipients", []) and len(
+            broadcast_args.get("recipients", [])
+        ) > 10:
+
+            recipients_preview += f", and {len(broadcast_args.get('recipients', [])) - 10} more"
+
+        prompt = f"""
+You are the final review and approval preparation agent.
+
+The user requested an email to be sent to ALL active
+employees/users of the company.
+
+Your job is to display the prepared broadcast clearly for
+human approval — including exactly who will receive it.
+
+USER REQUEST:
+{query}
+
+RECIPIENT COUNT:
+{recipient_count}
+
+RECIPIENTS (preview):
+{recipients_preview}
+
+SUBJECT:
+{broadcast_args.get('subject', '')}
+
+BODY:
+{broadcast_args.get('message', '')}
+
+
+IMPORTANT RULES:
+
+1. Do not create a research report.
+
+2. Do not invent information not present above.
+
+3. Clearly show the recipient count and a preview of who
+   will receive it — this is a bulk send, the reviewer needs
+   to know the scope before approving.
+
+4. Clearly state that the broadcast is awaiting human
+   approval before it is sent.
+
+
+Return ONLY the following format:
+
+# Broadcast Email Approval Request
+
+## Recipients
+
+[recipient count] recipients — [recipients preview]
+
+## Subject
+
+[subject]
+
+## Message
+
+[body]
+
+## Approval Required
+
+This email is prepared and is waiting for human approval before it is sent to all recipients listed above.
 """
 
 

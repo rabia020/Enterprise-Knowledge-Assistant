@@ -1,0 +1,485 @@
+/* ==========================================================
+   ENTERPRISE KNOWLEDGE ASSISTANT — DESIGN SYSTEM
+   Dark navy / teal, card-based enterprise UI
+   ========================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-deep:        #0a1220;
+  --bg-navy:        #0e1b2e;
+  --bg-navy-mid:    #101f35;
+  --card-dark:      #14213a;
+  --card-dark-2:    #17283f;
+  --card-dark-hover:#1c3050;
+  --border-subtle:  rgba(255,255,255,0.08);
+  --border-subtle-2:rgba(255,255,255,0.14);
+
+  --accent-teal:       #14b8b0;
+  --accent-teal-dark:  #0d9488;
+  --accent-teal-light: #2dd4bf;
+  --accent-teal-soft:  rgba(20,184,176,0.14);
+
+  --text-primary:   #f1f5f9;
+  --text-secondary: #a9b6c9;
+  --text-muted:     #7c8aa0;
+
+  --white:          #ffffff;
+  --ink:            #0f172a;
+
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+
+  --shadow-card: 0 8px 30px rgba(0,0,0,0.35);
+}
+
+html, body, [class*="css"], .stApp, .stMarkdown, p, span, div {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* ----------------------------------------------------------
+   APP BACKGROUND
+   ---------------------------------------------------------- */
+.stApp {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(20,184,176,0.20), transparent 42%),
+    radial-gradient(circle at 88% 0%, rgba(45,212,191,0.10), transparent 38%),
+    linear-gradient(180deg, #0a1220 0%, #0e1b2e 55%, #0b1626 100%);
+  background-attachment: fixed;
+}
+
+#MainMenu, header[data-testid="stHeader"], footer {
+  visibility: hidden;
+  height: 0;
+}
+
+.block-container {
+  padding-top: 2rem !important;
+  max-width: 1200px;
+}
+
+/* ----------------------------------------------------------
+   TYPOGRAPHY HELPERS
+   ---------------------------------------------------------- */
+.eka-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(20,184,176,0.12);
+  border: 1px solid rgba(20,184,176,0.35);
+  color: var(--accent-teal-light);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.eka-h1 {
+  font-size: 52px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  margin: 20px 0 14px 0;
+}
+
+.eka-sub {
+  font-size: 17px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.eka-section-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ----------------------------------------------------------
+   LANDING HERO
+   ---------------------------------------------------------- */
+.eka-logo-badge {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #16324f, #0d1e33);
+  border: 1px solid var(--border-subtle-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 0 0 6px rgba(20,184,176,0.06), 0 10px 24px rgba(0,0,0,0.4);
+}
+.eka-logo-badge svg { width: 34px; height: 34px; color: var(--accent-teal-light); }
+
+.eka-hero-wrap { text-align: center; padding: 8px 0 6px 0; }
+
+/* ----------------------------------------------------------
+   CARD PRIMITIVES
+   ---------------------------------------------------------- */
+.eka-card {
+  background: var(--card-dark);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 26px;
+}
+
+.eka-card-white {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.eka-capabilities-box {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 26px 30px;
+}
+
+.eka-cap-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+.eka-cap-icon {
+  width: 30px; height: 30px; min-width: 30px;
+  border-radius: 9px;
+  background: rgba(20,184,176,0.14);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-teal-light);
+}
+.eka-cap-icon svg { width: 16px; height: 16px; }
+
+/* ----------------------------------------------------------
+   ICON BADGES (round, dark, used everywhere)
+   ---------------------------------------------------------- */
+.eka-icon-badge {
+  width: 44px; height: 44px; min-width: 44px;
+  border-radius: 12px;
+  background: #10233d;
+  border: 1px solid var(--border-subtle-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white);
+}
+.eka-icon-badge svg { width: 20px; height: 20px; }
+
+.eka-icon-badge--teal {
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-dark));
+  border: none;
+}
+
+.eka-icon-badge--light {
+  background: #eef2f7;
+  color: #33415c;
+}
+
+/* ----------------------------------------------------------
+   CONTINUE-AS ROLE CARDS (landing page)
+   ---------------------------------------------------------- */
+div[data-testid="stButton"] button.eka-role-btn,
+.eka-role-shell div[data-testid="stButton"] button {
+  width: 100%;
+  height: 78px;
+  border-radius: var(--radius-md) !important;
+  text-align: left !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  padding: 0 22px !important;
+}
+
+/* ----------------------------------------------------------
+   GENERIC BUTTON RESKIN
+   ---------------------------------------------------------- */
+div[data-testid="stButton"] > button {
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600 !important;
+  transition: all .15s ease;
+}
+
+/* Primary (type="primary") -> teal gradient */
+div[data-testid="stButton"] > button[kind="primary"] {
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-dark)) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 6px 18px rgba(13,148,136,0.35);
+}
+div[data-testid="stButton"] > button[kind="primary"]:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+/* Secondary -> dark card style */
+div[data-testid="stButton"] > button[kind="secondary"] {
+  background: var(--card-dark) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-subtle-2) !important;
+}
+div[data-testid="stButton"] > button[kind="secondary"]:hover {
+  background: var(--card-dark-hover) !important;
+  border-color: var(--accent-teal) !important;
+}
+
+/* Disabled quick-action style used sparingly */
+div[data-testid="stButton"] > button:disabled {
+  opacity: 0.45 !important;
+}
+
+/* ----------------------------------------------------------
+   LOGIN CARD
+   ---------------------------------------------------------- */
+.eka-login-shell { display: flex; justify-content: center; padding-top: 24px; }
+
+.eka-login-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 34px 34px 26px 34px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  max-width: 520px;
+}
+
+.eka-login-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 22px; }
+.eka-login-title { font-size: 21px; font-weight: 800; color: var(--ink); margin: 0; }
+.eka-login-caption { font-size: 13.5px; color: #64748b; margin-top: 2px; }
+
+.eka-back-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  color: var(--text-secondary); font-size: 14px; font-weight: 500;
+  margin-bottom: 18px; text-decoration: none;
+}
+
+/* Login form inputs (white-card context) */
+.eka-login-card div[data-testid="stTextInput"] label,
+.eka-login-card .eka-field-label {
+  color: var(--ink) !important;
+  font-weight: 700 !important;
+  font-size: 14.5px !important;
+}
+
+.eka-login-card div[data-testid="stTextInput"] input {
+  background: #eef2f7 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  color: var(--ink) !important;
+  padding: 12px 14px !important;
+  height: 46px !important;
+}
+.eka-login-card div[data-testid="stTextInput"] input::placeholder { color: #94a3b8; }
+
+.eka-hint-box {
+  background: #eef4fb;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #2f5f92;
+  font-size: 13.5px;
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* ----------------------------------------------------------
+   SIDEBAR
+   ---------------------------------------------------------- */
+section[data-testid="stSidebar"] {
+  background: linear-gradient(180deg, #0b1526 0%, #0a1220 100%);
+  border-right: 1px solid var(--border-subtle);
+}
+section[data-testid="stSidebar"] .block-container { padding-top: 1.6rem; }
+
+.eka-sidebar-brand {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 4px 18px 4px;
+}
+.eka-sidebar-brand-badge {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-dark));
+  display: flex; align-items: center; justify-content: center;
+}
+.eka-sidebar-brand-badge svg { width: 18px; height: 18px; color: #fff; }
+.eka-sidebar-brand-name { color: var(--text-primary); font-weight: 700; font-size: 16px; }
+
+section[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+.eka-sidebar-section-label {
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 18px 4px 8px 4px;
+}
+
+.eka-recent-chat-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  color: var(--text-secondary);
+  font-size: 13.5px;
+  margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.eka-recent-chat-item svg { width: 15px; height: 15px; min-width: 15px; opacity: 0.7; }
+
+.eka-tool-row {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+.eka-tool-row svg { width: 17px; height: 17px; opacity: 0.85; }
+
+/* ----------------------------------------------------------
+   DASHBOARD HEADER (top bar)
+   ---------------------------------------------------------- */
+.eka-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+}
+.eka-topbar-title { font-size: 22px; font-weight: 800; color: var(--text-primary); margin: 0; }
+.eka-topbar-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+.eka-user-chip { display: flex; align-items: center; gap: 12px; }
+.eka-user-meta { text-align: right; line-height: 1.25; }
+.eka-user-name { color: var(--text-primary); font-weight: 700; font-size: 14px; }
+.eka-user-role { color: var(--text-muted); font-size: 12.5px; }
+.eka-avatar {
+  width: 38px; height: 38px; border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-teal), var(--accent-teal-dark));
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+}
+
+/* ----------------------------------------------------------
+   WORKSPACE HERO + OVERVIEW CARDS
+   ---------------------------------------------------------- */
+.eka-workspace-title {
+  font-size: 26px; font-weight: 800; color: var(--text-primary);
+  display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+}
+.eka-workspace-greeting { color: var(--text-secondary); font-size: 15px; margin-bottom: 26px; }
+.eka-workspace-greeting b { color: var(--text-primary); }
+
+.eka-overview-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  height: 100%;
+}
+.eka-overview-card-title {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 16px; color: var(--ink);
+  margin-bottom: 8px;
+}
+.eka-overview-card-desc { color: #55647a; font-size: 14px; line-height: 1.5; }
+
+/* ----------------------------------------------------------
+   START-A-CONVERSATION STARTER CARDS
+   ---------------------------------------------------------- */
+.eka-starter-label {
+  font-weight: 700; color: var(--text-primary); font-size: 16px;
+  margin: 22px 0 14px 0;
+}
+
+.eka-starter-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 14px;
+  font-weight: 700; color: var(--ink); font-size: 15px;
+  height: 64px;
+  cursor: pointer;
+}
+
+/* invisible full-cover button trick for starter cards */
+.eka-clickable-wrap { position: relative; }
+.eka-clickable-wrap div[data-testid="stButton"] {
+  position: absolute; inset: 0; z-index: 5;
+}
+.eka-clickable-wrap div[data-testid="stButton"] button {
+  width: 100%; height: 100%;
+  opacity: 0; cursor: pointer;
+}
+
+/* quick reply pills row above chat input */
+.eka-pill-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 6px 0; }
+.eka-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--card-dark-2);
+  border: 1px solid var(--border-subtle-2);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13.5px; font-weight: 600;
+}
+
+/* ----------------------------------------------------------
+   CHAT INPUT / CHAT MESSAGES
+   ---------------------------------------------------------- */
+div[data-testid="stChatInput"] {
+  background: var(--card-dark) !important;
+  border: 1px solid var(--border-subtle-2) !important;
+  border-radius: var(--radius-md) !important;
+}
+div[data-testid="stChatInput"] textarea {
+  color: var(--text-primary) !important;
+}
+div[data-testid="stChatInput"] textarea::placeholder { color: var(--text-muted) !important; }
+
+div[data-testid="stChatMessage"] {
+  background: var(--card-dark) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 4px 6px !important;
+}
+
+/* radio pills (assistant mode) */
+div[role="radiogroup"] label {
+  background: var(--card-dark);
+  border: 1px solid var(--border-subtle-2);
+  border-radius: 999px;
+  padding: 8px 18px !important;
+  color: var(--text-secondary) !important;
+  margin-right: 8px !important;
+}
+
+/* ----------------------------------------------------------
+   TABS
+   ---------------------------------------------------------- */
+button[data-baseweb="tab"] {
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+  color: var(--accent-teal-light) !important;
+}
+div[data-baseweb="tab-highlight"] { background-color: var(--accent-teal) !important; }
+div[data-baseweb="tab-border"] { background-color: var(--border-subtle) !important; }
+
+/* ----------------------------------------------------------
+   ALERT BOXES (st.info / st.success / st.warning / st.error)
+   ---------------------------------------------------------- */
+div[data-testid="stAlert"] {
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid var(--border-subtle-2) !important;
+}
+
+/* ----------------------------------------------------------
+   MISC
+   ---------------------------------------------------------- */
+hr { border-color: var(--border-subtle) !important; }
