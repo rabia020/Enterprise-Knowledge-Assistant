@@ -135,7 +135,7 @@ If a detail is not mentioned, use an empty string.
 
 
 # ==========================================================
-# HELPER — PARSE EVENTS FROM N8N MESSAGE (IMPROVED)
+# HELPER — PARSE EVENTS FROM N8N MESSAGE 
 # ==========================================================
 
 def _parse_events_from_message(message: str) -> list:
@@ -234,7 +234,7 @@ def _parse_events_from_message(message: str) -> list:
 
 
 # ==========================================================
-# HELPER — FORMAT EVENT DETAILS FOR EMAIL
+# HELPER — EVENT DETAILS FOR EMAIL
 # ==========================================================
 
 def _format_event_details_for_email(events: list) -> str:
@@ -303,7 +303,7 @@ def _format_event_details_for_slack(events: list) -> str:
 
 
 # ==========================================================
-# HELPER — FETCH CALENDAR CONTEXT (IMPROVED)
+# HELPER — FETCH CALENDAR CONTEXT 
 # ==========================================================
 
 def _fetch_calendar_context(query: str, format_type: str = "email") -> str:
@@ -1009,7 +1009,7 @@ JSON only.
 
 # ==========================================================
 # WORKFLOW 3
-# LIST RECENT INBOX EMAILS (read-only — no approval needed)
+# LIST RECENT INBOX EMAILS 
 # ==========================================================
 
 def list_recent_emails(
