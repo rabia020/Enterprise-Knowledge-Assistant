@@ -83,11 +83,12 @@ for key, default_value in DEFAULT_SESSION.items():
 
     if key not in st.session_state:
 
-        # Make mutable objects independent per session
         if isinstance(default_value, list):
             st.session_state[key] = []
+
         elif isinstance(default_value, dict):
             st.session_state[key] = {}
+
         else:
             st.session_state[key] = default_value
 
@@ -99,10 +100,6 @@ for key, default_value in DEFAULT_SESSION.items():
 def render_html(html):
     """
     Safely render an HTML fragment in Streamlit.
-
-    Each line is stripped and then joined into a single line
-    before being passed to Streamlit. This prevents indented
-    HTML from being interpreted as a Markdown code block.
     """
 
     if html is None:
@@ -138,107 +135,31 @@ def reset_chat():
 
 
 # ==========================================================
-# ROLE CARD
+# ROLE NAVIGATION
 # ==========================================================
 
-def role_card(
-    icon_svg,
-    title,
-    subtitle,
-    button_key,
-    primary=False,
-):
-    """
-    Display a visual role card and a Streamlit button.
-    Colors are unchanged from the original design.
-    """
+def open_manager_login():
 
-    if primary:
+    st.session_state.page = "manager_login"
+    st.session_state.logged_in = False
 
-        card_background = (
-            "linear-gradient(135deg, #14b8b0, #0d9488)"
-        )
+    # Clear login fields from any previous attempt
+    st.session_state.pop("login_username_field", None)
+    st.session_state.pop("login_password_field", None)
 
-        title_color = "#ffffff"
-        subtitle_color = "rgba(255,255,255,0.86)"
-        arrow_color = "#ffffff"
+    st.rerun()
 
-        icon_background = "rgba(255,255,255,0.20)"
-        icon_color = "#ffffff"
 
-    else:
+def open_employee_login():
 
-        card_background = "#142a3b"
+    st.session_state.page = "employee_login"
+    st.session_state.logged_in = False
 
-        title_color = "#f1f5f9"
-        subtitle_color = "#a9b6c9"
-        arrow_color = "#7c8aa0"
+    # Clear login fields from any previous attempt
+    st.session_state.pop("login_username_field", None)
+    st.session_state.pop("login_password_field", None)
 
-        icon_background = "#10283b"
-        icon_color = "#ffffff"
-
-    render_html(
-        f"""
-        <div style="
-            background:{card_background};
-            border:1px solid rgba(255,255,255,0.10);
-            border-radius:16px;
-            padding:16px 20px;
-            display:flex;
-            align-items:center;
-            gap:14px;
-            min-height:66px;
-            box-sizing:border-box;
-            margin-bottom:8px;
-        ">
-            <div style="
-                width:44px;
-                height:44px;
-                min-width:44px;
-                border-radius:12px;
-                background:{icon_background};
-                color:{icon_color};
-                display:flex;
-                align-items:center;
-                justify-content:center;
-            ">
-                {icon_svg}
-            </div>
-            <div style="flex:1;min-width:0;">
-                <div style="
-                    font-weight:800;
-                    font-size:16px;
-                    color:{title_color};
-                    line-height:1.3;
-                    white-space:nowrap;
-                ">
-                    {title}
-                </div>
-                <div style="
-                    font-size:13px;
-                    color:{subtitle_color};
-                    margin-top:3px;
-                    line-height:1.4;
-                    white-space:nowrap;
-                    overflow:hidden;
-                    text-overflow:ellipsis;
-                ">
-                    {subtitle}
-                </div>
-            </div>
-            <div style="color:{arrow_color};display:flex;align-items:center;">
-                {ICON_ARROW_RIGHT}
-            </div>
-        </div>
-        """
-    )
-
-    return st.button(
-        "Continue",
-        key=button_key,
-        use_container_width=True,
-        type="primary" if primary else "secondary",
-    )
+    st.rerun()
 
 
 # ==========================================================
@@ -252,30 +173,38 @@ def landing_page():
         unsafe_allow_html=True,
     )
 
-    # Wider center column so the heading fits on one line and
-    # role-card subtitles fit on one line, matching the reference.
-    left, center, right = st.columns([1, 4.2, 1])
+    # Wider centered layout
+    left, center, right = st.columns([0.5, 5, 0.5])
 
     with center:
+
+        # --------------------------------------------------
+        # HERO
+        # --------------------------------------------------
 
         render_html(
             f"""
             <div class="eka-hero-wrap">
+
                 <div class="eka-logo-badge">
                     {ICON_ROBOT}
                 </div>
+
                 <div style="margin-top:16px;">
                     <span class="eka-eyebrow">
                         ✦ AI WORKPLACE COPILOT
                     </span>
                 </div>
+
                 <div class="eka-h1">
                     Enterprise Knowledge Assistant
                 </div>
+
                 <div class="eka-sub">
                     One secure workspace for company policies,
                     leave rules and AI-powered workplace automation.
                 </div>
+
             </div>
             """
         )
@@ -285,6 +214,10 @@ def landing_page():
             unsafe_allow_html=True,
         )
 
+        # --------------------------------------------------
+        # CONTINUE AS
+        # --------------------------------------------------
+
         render_html(
             """
             <div style="
@@ -292,42 +225,63 @@ def landing_page():
                 font-weight:800;
                 color:#f1f5f9;
                 font-size:17px;
-                margin-bottom:12px;
+                margin-bottom:14px;
             ">
                 Continue As
             </div>
             """
         )
 
-        manager_col, employee_col = st.columns(2)
+        # ==================================================
+        # ROLE CARDS
+        #
+        # IMPORTANT:
+        # These are REAL Streamlit buttons.
+        # No JavaScript.
+        # No onclick.
+        # No query parameters.
+        # ==================================================
+
+        manager_col, employee_col = st.columns(
+            2,
+            gap="large"
+        )
+
+        # --------------------------------------------------
+        # MANAGER
+        # --------------------------------------------------
 
         with manager_col:
 
-            manager_clicked = role_card(
-                ICON_MANAGER,
-                "Manager",
-                "Team insights, users and document control",
-                "landing_manager_btn",
-                primary=True,
-            )
+            with st.container(key="manager_role_card"):
+
+                manager_clicked = st.button(
+                    "Manager",
+                    key="manager_role_btn",
+                    use_container_width=True,
+                    type="primary",
+                )
+
+            if manager_clicked:
+                open_manager_login()
+
+        # --------------------------------------------------
+        # EMPLOYEE
+        # --------------------------------------------------
 
         with employee_col:
 
-            employee_clicked = role_card(
-                ICON_EMPLOYEE,
-                "Employee",
-                "Policies, leave answers and daily automation",
-                "landing_employee_btn",
-                primary=False,
-            )
+            with st.container(key="employee_role_card"):
 
-        if manager_clicked:
-            st.session_state.page = "manager_login"
-            st.rerun()
+                employee_clicked = st.button(
+                    "Employee",
+                    key="employee_role_btn",
+                    use_container_width=True,
+                    type="secondary",
+                )
 
-        if employee_clicked:
-            st.session_state.page = "employee_login"
-            st.rerun()
+            if employee_clicked:
+                open_employee_login()
 
         # --------------------------------------------------
         # CAPABILITIES
@@ -339,27 +293,69 @@ def landing_page():
         )
 
         capabilities = [
-            (ICON_MAIL, "Analyze and manage work-related emails"),
-            (ICON_DOC, "Search internal company knowledge"),
-            (ICON_CHART, "Generate business summaries and reports"),
-            (ICON_CALENDAR, "Create calendar events"),
-            (ICON_TASKS, "Prepare tasks and action items"),
-            (ICON_SHIELD, "Human approval before sensitive actions"),
+            (
+                ICON_MAIL,
+                "Analyze and manage work-related emails",
+            ),
+            (
+                ICON_DOC,
+                "Search internal company knowledge",
+            ),
+            (
+                ICON_CHART,
+                "Generate business summaries and reports",
+            ),
+            (
+                ICON_CALENDAR,
+                "Create calendar events",
+            ),
+            (
+                ICON_TASKS,
+                "Prepare tasks and action items",
+            ),
+            (
+                ICON_SHIELD,
+                "Human approval before sensitive actions",
+            ),
         ]
 
         def _cap_row(icon, label):
+
             return (
-                '<div style="display:flex;align-items:center;gap:12px;'
-                'padding:8px 0;color:#a9b6c9;font-size:14px;">'
-                '<span style="width:30px;height:30px;min-width:30px;'
-                'border-radius:9px;background:rgba(20,184,176,0.14);'
-                'color:#2dd4bf;display:flex;align-items:center;'
-                f'justify-content:center;">{icon}</span>'
-                f'<span>{label}</span></div>'
+                '<div style="'
+                'display:flex;'
+                'align-items:center;'
+                'gap:12px;'
+                'padding:8px 0;'
+                'color:#a9b6c9;'
+                'font-size:14px;'
+                '">'
+                '<span style="'
+                'width:30px;'
+                'height:30px;'
+                'min-width:30px;'
+                'border-radius:9px;'
+                'background:rgba(20,184,176,0.14);'
+                'color:#2dd4bf;'
+                'display:flex;'
+                'align-items:center;'
+                'justify-content:center;'
+                '">'
+                f'{icon}'
+                '</span>'
+                f'<span>{label}</span>'
+                '</div>'
             )
 
-        left_items = "".join(_cap_row(i, l) for i, l in capabilities[:3])
-        right_items = "".join(_cap_row(i, l) for i, l in capabilities[3:])
+        left_items = "".join(
+            _cap_row(icon, label)
+            for icon, label in capabilities[:3]
+        )
+
+        right_items = "".join(
+            _cap_row(icon, label)
+            for icon, label in capabilities[3:]
+        )
 
         render_html(
             f"""
@@ -369,6 +365,7 @@ def landing_page():
                 border-radius:22px;
                 padding:22px 26px;
             ">
+
                 <div style="
                     font-size:12px;
                     font-weight:700;
@@ -379,10 +376,29 @@ def landing_page():
                 ">
                     Enterprise AI Capabilities
                 </div>
-                <div style="display:flex;gap:35px;flex-wrap:wrap;">
-                    <div style="flex:1;min-width:230px;">{left_items}</div>
-                    <div style="flex:1;min-width:230px;">{right_items}</div>
+
+                <div style="
+                    display:flex;
+                    gap:35px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div style="
+                        flex:1;
+                        min-width:230px;
+                    ">
+                        {left_items}
+                    </div>
+
+                    <div style="
+                        flex:1;
+                        min-width:230px;
+                    ">
+                        {right_items}
+                    </div>
+
                 </div>
+
             </div>
             """
         )
@@ -399,7 +415,9 @@ def landing_page():
 
 def login_page():
 
-    left, center, right = st.columns([1, 1.35, 1])
+    left, center, right = st.columns(
+        [1, 1.35, 1]
+    )
 
     with center:
 
@@ -408,26 +426,49 @@ def login_page():
             unsafe_allow_html=True,
         )
 
-        if st.button("←  Back", key="login_back_btn", type="secondary"):
+        # --------------------------------------------------
+        # BACK BUTTON
+        # --------------------------------------------------
+
+        if st.button(
+            "←  Back",
+            key="login_back_btn",
+            type="secondary",
+        ):
+
             st.session_state.page = "landing"
+
+            st.session_state.pop(
+                "login_username_field",
+                None,
+            )
+
+            st.session_state.pop(
+                "login_password_field",
+                None,
+            )
+
             st.rerun()
 
+        # --------------------------------------------------
+        # DETERMINE ROLE
+        # --------------------------------------------------
+
         if st.session_state.page == "manager_login":
+
             title = "Manager Login"
             icon = ICON_MANAGER
             expected_role = "manager"
+
         else:
+
             title = "Employee Login"
             icon = ICON_EMPLOYEE
             expected_role = "employee"
 
-        # ----------------------------------------------------
-        # Everything below lives inside ONE real st.container,
-        # which style.css turns into the white card. Native
-        # widgets (text_input, button) render correctly inside
-        # it -- unlike raw HTML spanning multiple st.markdown
-        # calls, which cannot stay "open" across calls.
-        # ----------------------------------------------------
+        # --------------------------------------------------
+        # LOGIN CARD
+        # --------------------------------------------------
 
         with st.container(key="login_card"):
 
@@ -439,6 +480,7 @@ def login_page():
                     align-items:flex-start;
                     margin-bottom:18px;
                 ">
+
                     <div style="
                         width:44px;
                         height:44px;
@@ -452,7 +494,9 @@ def login_page():
                     ">
                         {icon}
                     </div>
+
                     <div>
+
                         <div style="
                             font-size:21px;
                             font-weight:800;
@@ -460,6 +504,7 @@ def login_page():
                         ">
                             {title}
                         </div>
+
                         <div style="
                             font-size:10px;
                             color:#64748b;
@@ -469,14 +514,26 @@ def login_page():
                             Sign in to access your internal
                             enterprise AI workspace.
                         </div>
+
                     </div>
+
                 </div>
                 """
             )
 
+            # ------------------------------------------------
+            # USERNAME
+            # ------------------------------------------------
+
             render_html(
-                '<div style="color:#0f172a;font-weight:700;'
-                'font-size:14px;margin:4px 0 5px 0;">Username</div>'
+                '<div style="'
+                'color:#0f172a;'
+                'font-weight:700;'
+                'font-size:14px;'
+                'margin:4px 0 5px 0;'
+                '">'
+                'Username'
+                '</div>'
             )
 
             username = st.text_input(
@@ -486,9 +543,19 @@ def login_page():
                 key="login_username_field",
             )
 
+            # ------------------------------------------------
+            # PASSWORD
+            # ------------------------------------------------
+
             render_html(
-                '<div style="color:#0f172a;font-weight:700;'
-                'font-size:14px;margin:12px 0 5px 0;">Password</div>'
+                '<div style="'
+                'color:#0f172a;'
+                'font-weight:700;'
+                'font-size:14px;'
+                'margin:12px 0 5px 0;'
+                '">'
+                'Password'
+                '</div>'
             )
 
             password = st.text_input(
@@ -504,12 +571,20 @@ def login_page():
                 unsafe_allow_html=True,
             )
 
+            # ------------------------------------------------
+            # LOGIN BUTTON
+            # ------------------------------------------------
+
             login_clicked = st.button(
                 "Login",
                 use_container_width=True,
                 type="primary",
                 key="login_submit_btn",
             )
+
+            # ------------------------------------------------
+            # HINT
+            # ------------------------------------------------
 
             render_html(
                 """
@@ -522,45 +597,70 @@ def login_page():
                     text-align:center;
                     margin-top:12px;
                 ">
-                    If you do not have an account, please contact your administrator.
+                    If you do not have an account,
+                    please contact your administrator.
                 </div>
                 """
             )
 
+        # --------------------------------------------------
+        # LOGIN PROCESSING
+        # --------------------------------------------------
+
         if login_clicked:
 
             if not username.strip() or not password.strip():
-                st.warning("Please enter both username and password.")
+
+                st.warning(
+                    "Please enter both username and password."
+                )
+
                 return
 
-            user = login(username.strip(), password)
+            user = login(
+                username.strip(),
+                password,
+            )
 
             if user is None:
-                st.error("Invalid username or password.")
+
+                st.error(
+                    "Invalid username or password."
+                )
+
                 return
 
             if user["role"] != expected_role:
+
                 st.error(
                     f"This account belongs to a "
                     f"{user['role'].capitalize()}, not a "
                     f"{expected_role.capitalize()}."
                 )
+
                 return
 
-            # ------------------------------------------------
-            # SUCCESSFUL LOGIN -> routes to the matching
-            # dashboard via dashboard()'s role check below.
-            # ------------------------------------------------
+            # ----------------------------------------------
+            # SUCCESSFUL LOGIN
+            # ----------------------------------------------
 
             st.session_state.logged_in = True
+
             st.session_state.page = "dashboard"
+
             st.session_state.user = user
 
             reset_chat()
 
-            name = user.get("full_name") or user.get("username") or "User"
+            name = (
+                user.get("full_name")
+                or user.get("username")
+                or "User"
+            )
 
-            st.success(f"Welcome, {name}!")
+            st.success(
+                f"Welcome, {name}!"
+            )
 
             st.rerun()
 
@@ -572,7 +672,9 @@ def login_page():
 def logout():
 
     st.session_state.logged_in = False
+
     st.session_state.page = "landing"
+
     st.session_state.user = None
 
     reset_chat()
@@ -584,17 +686,9 @@ def logout():
 # SIDEBAR
 # ==========================================================
 
-# ==========================================================
-# SIDEBAR
-# ==========================================================
-
 def render_sidebar():
 
     with st.sidebar:
-
-        # --------------------------------------------------
-        # APP BRANDING
-        # --------------------------------------------------
 
         render_html(
             f"""
@@ -604,11 +698,17 @@ def render_sidebar():
                 gap:10px;
                 padding:4px 4px 18px 4px;
             ">
+
                 <div style="
                     width:34px;
                     height:34px;
                     border-radius:9px;
-                    background:linear-gradient(135deg,#14b8b0,#0d9488);
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #14b8b0,
+                            #0d9488
+                        );
                     display:flex;
                     align-items:center;
                     justify-content:center;
@@ -623,6 +723,7 @@ def render_sidebar():
                 ">
                     AI Assistant
                 </div>
+
             </div>
             """
         )
@@ -637,7 +738,9 @@ def render_sidebar():
             type="primary",
             key="sidebar_new_chat_btn",
         ):
+
             reset_chat()
+
             st.rerun()
 
         # --------------------------------------------------
@@ -665,7 +768,6 @@ def render_sidebar():
             if message.get("role") == "user"
         ]
 
-        # No chat history
         if not user_messages:
 
             render_html(
@@ -679,16 +781,17 @@ def render_sidebar():
                     color:#a9b6c9;
                     font-size:13.5px;
                 ">
+
                     {ICON_CHAT}
 
                     <span>
                         No conversations yet
                     </span>
+
                 </div>
                 """
             )
 
-        # Existing chat history
         else:
 
             for message in user_messages[-8:][::-1]:
@@ -714,18 +817,16 @@ def render_sidebar():
                         overflow:hidden;
                         text-overflow:ellipsis;
                     ">
+
                         {ICON_CHAT}
 
                         <span>
                             {preview}
                         </span>
+
                     </div>
                     """
                 )
-
-        # --------------------------------------------------
-        # PUSH SETTINGS / LOGOUT TOWARD BOTTOM
-        # --------------------------------------------------
 
         st.markdown(
             "<div style='height:24px'></div>",
@@ -756,6 +857,7 @@ def render_sidebar():
             type="secondary",
             key="sidebar_logout_btn",
         ):
+
             logout()
 
 
@@ -765,7 +867,11 @@ def render_sidebar():
 
 def render_topbar(user, display_name):
 
-    initials = display_name[:1].upper() if display_name else "U"
+    initials = (
+        display_name[:1].upper()
+        if display_name
+        else "U"
+    )
 
     col_title, col_user = st.columns([3, 1])
 
@@ -774,12 +880,23 @@ def render_topbar(user, display_name):
         render_html(
             """
             <div>
-                <div style="font-size:22px;font-weight:800;color:#f1f5f9;">
+
+                <div style="
+                    font-size:22px;
+                    font-weight:800;
+                    color:#f1f5f9;
+                ">
                     Enterprise Knowledge Assistant
                 </div>
-                <div style="font-size:13px;color:#7c8aa0;margin-top:2px;">
+
+                <div style="
+                    font-size:13px;
+                    color:#7c8aa0;
+                    margin-top:2px;
+                ">
                     AI-powered Workplace Automation
                 </div>
+
             </div>
             """
         )
@@ -788,36 +905,70 @@ def render_topbar(user, display_name):
 
         render_html(
             f"""
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px;">
-                <div style="text-align:right;line-height:1.25;">
-                    <div style="color:#f1f5f9;font-weight:700;font-size:14px;">
+            <div style="
+                display:flex;
+                align-items:center;
+                justify-content:flex-end;
+                gap:12px;
+            ">
+
+                <div style="
+                    text-align:right;
+                    line-height:1.25;
+                ">
+
+                    <div style="
+                        color:#f1f5f9;
+                        font-weight:700;
+                        font-size:14px;
+                    ">
                         {display_name}
                     </div>
-                    <div style="color:#7c8aa0;font-size:12.5px;">
+
+                    <div style="
+                        color:#7c8aa0;
+                        font-size:12.5px;
+                    ">
                         {user['role'].capitalize()}
                     </div>
+
                 </div>
+
                 <div style="
-                    width:38px;height:38px;border-radius:999px;
-                    background:linear-gradient(135deg,#14b8b0,#0d9488);
-                    color:#ffffff;display:flex;align-items:center;
-                    justify-content:center;font-weight:700;font-size:15px;
+                    width:38px;
+                    height:38px;
+                    border-radius:999px;
+                    background:
+                        linear-gradient(
+                            135deg,
+                            #14b8b0,
+                            #0d9488
+                        );
+                    color:#ffffff;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-weight:700;
+                    font-size:15px;
                 ">
                     {initials}
                 </div>
+
             </div>
             """
         )
 
     st.markdown(
-        "<div style='border-bottom:1px solid rgba(255,255,255,0.08);"
-        "margin:14px 0 24px 0;'></div>",
+        "<div style='"
+        "border-bottom:1px solid rgba(255,255,255,0.08);"
+        "margin:14px 0 24px 0;"
+        "'></div>",
         unsafe_allow_html=True,
     )
 
 
 # ==========================================================
-# DASHBOARD  (routes to Manager or Employee workspace by role)
+# DASHBOARD
 # ==========================================================
 
 def dashboard():
@@ -825,58 +976,98 @@ def dashboard():
     user = st.session_state.user
 
     display_name = (
-        user.get("full_name") or user.get("username") or "User"
+        user.get("full_name")
+        or user.get("username")
+        or "User"
     ).strip()
 
     render_sidebar()
 
-    render_topbar(user, display_name)
+    render_topbar(
+        user,
+        display_name,
+    )
+
+    # ------------------------------------------------------
+    # WORKSPACE TYPE
+    # ------------------------------------------------------
 
     if user["role"] == "manager":
+
         workspace_label = "Manager Workspace"
         workspace_icon = "🛠"
+
     else:
+
         workspace_label = "Employee Workspace"
         workspace_icon = "🎒"
 
     render_html(
         f"""
-        <div style="font-size:26px;font-weight:800;color:#f1f5f9;margin-bottom:4px;">
+        <div style="
+            font-size:26px;
+            font-weight:800;
+            color:#f1f5f9;
+            margin-bottom:4px;
+        ">
             {workspace_icon} {workspace_label}
         </div>
-        <div style="color:#a9b6c9;font-size:15px;margin-bottom:26px;">
-            Hello <strong style="color:#f1f5f9;">{display_name}</strong>,
-            what would you like the Enterprise AI Assistant to help with?
+
+        <div style="
+            color:#a9b6c9;
+            font-size:15px;
+            margin-bottom:26px;
+        ">
+            Hello
+            <strong style="color:#f1f5f9;">
+                {display_name}
+            </strong>,
+            what would you like the Enterprise AI Assistant
+            to help with?
         </div>
         """
     )
 
-   
-
-    # --------------------------------------------------------
-    # ROLE-BASED DASHBOARD ROUTING
-    #   manager  -> AI Assistant + Document Management
-    #   employee -> AI Assistant + My Profile
-    # --------------------------------------------------------
+    # ------------------------------------------------------
+    # MANAGER DASHBOARD
+    # ------------------------------------------------------
 
     if user["role"] == "manager":
 
-        tab1, tab2 = st.tabs(["💬 AI Assistant", "📂 Document Management"])
+        tab1, tab2 = st.tabs(
+            [
+                "💬 AI Assistant",
+                "📂 Document Management",
+            ]
+        )
 
         with tab1:
+
             show_chat_panel()
 
         with tab2:
+
             show_manager_panel()
+
+    # ------------------------------------------------------
+    # EMPLOYEE DASHBOARD
+    # ------------------------------------------------------
 
     else:
 
-        tab1, tab2 = st.tabs(["💬 AI Assistant", "👤 My Profile"])
+        tab1, tab2 = st.tabs(
+            [
+                "💬 AI Assistant",
+                "👤 My Profile",
+            ]
+        )
 
         with tab1:
+
             show_chat_panel()
 
         with tab2:
+
             show_employee_panel()
 
 
@@ -886,25 +1077,58 @@ def dashboard():
 
 def main():
 
+    # ------------------------------------------------------
+    # LOGGED IN
+    # ------------------------------------------------------
+
     if st.session_state.logged_in:
+
         dashboard()
+
         return
+
+    # ------------------------------------------------------
+    # LANDING
+    # ------------------------------------------------------
 
     if st.session_state.page == "landing":
+
         landing_page()
+
         return
+
+    # ------------------------------------------------------
+    # MANAGER LOGIN
+    # ------------------------------------------------------
 
     if st.session_state.page == "manager_login":
+
         login_page()
+
         return
+
+    # ------------------------------------------------------
+    # EMPLOYEE LOGIN
+    # ------------------------------------------------------
 
     if st.session_state.page == "employee_login":
+
         login_page()
+
         return
 
+    # ------------------------------------------------------
+    # FALLBACK
+    # ------------------------------------------------------
+
     st.session_state.page = "landing"
+
     st.rerun()
 
+
+# ==========================================================
+# RUN APPLICATION
+# ==========================================================
 
 if __name__ == "__main__":
     main()
