@@ -684,3 +684,217 @@ button[data-testid="stSidebarCollapsedControl"]:hover {
 
     box-shadow: 0 5px 18px rgba(20,184,176,0.45) !important;
 }
+
+/* ==========================================================
+   LANDING PAGE ROLE BUTTONS
+   Native Streamlit buttons styled as role cards, with an
+   icon, subtitle, and arrow added purely via CSS pseudo-
+   elements (::before / ::after). The button itself stays a
+   single real, plain-text Streamlit button underneath --
+   nothing here changes click behavior, it only decorates it.
+   ========================================================== */
+
+/* Containers need position:relative so the arrow (drawn on
+   the container, not the button) can sit on top of it. */
+div.st-key-manager_role_card,
+div.st-key-employee_role_card {
+    position: relative;
+}
+
+/* --------------------------------------------------------
+   ARROW (drawn on the container, layered above the button).
+   pointer-events:none so clicks pass straight through to
+   the real button underneath -- it's purely decorative.
+   -------------------------------------------------------- */
+div.st-key-manager_role_card::after,
+div.st-key-employee_role_card::after {
+    content: "\2192"; /* → */
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    font-weight: 700;
+    pointer-events: none;
+    z-index: 6;
+}
+div.st-key-manager_role_card::after { color: #ffffff; }
+div.st-key-employee_role_card::after { color: #7c8aa0; }
+
+/* --------------------------------------------------------
+   BASE BUTTON LAYOUT
+   Room is reserved on the left for the icon badge and on
+   the right for the arrow. The button becomes a column flex
+   container so the title (real text) stacks above the
+   subtitle (CSS-generated ::after content).
+   -------------------------------------------------------- */
+div.st-key-manager_role_card div[data-testid="stButton"] > button,
+div.st-key-employee_role_card div[data-testid="stButton"] > button {
+    width: 100% !important;
+    min-height: 78px !important;
+    height: 78px !important;
+
+    border-radius: 16px !important;
+    border: 1px solid rgba(255,255,255,0.10) !important;
+
+    text-align: left !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+
+    padding: 12px 54px 12px 68px !important;
+
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        filter 0.18s ease,
+        background 0.18s ease,
+        border-color 0.18s ease !important;
+}
+
+div.st-key-manager_role_card div[data-testid="stButton"] > button {
+    background: linear-gradient(135deg, #14b8b0, #0d9488) !important;
+    color: #ffffff !important;
+}
+
+div.st-key-employee_role_card div[data-testid="stButton"] > button {
+    background: #142a3b !important;
+    color: #f1f5f9 !important;
+}
+
+/* --------------------------------------------------------
+   ICON BADGE (::before)
+   -------------------------------------------------------- */
+div.st-key-manager_role_card div[data-testid="stButton"] > button::before,
+div.st-key-employee_role_card div[data-testid="stButton"] > button::before {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    line-height: 1;
+}
+
+div.st-key-manager_role_card div[data-testid="stButton"] > button::before {
+    content: "\1F464"; /* 👤 */
+    background: rgba(255,255,255,0.20);
+}
+
+div.st-key-employee_role_card div[data-testid="stButton"] > button::before {
+    content: "\1F465"; /* 👥 */
+    background: #10283b;
+}
+
+/* --------------------------------------------------------
+   SUBTITLE (::after on the button, stacked under the title)
+   -------------------------------------------------------- */
+div.st-key-manager_role_card div[data-testid="stButton"] > button::after,
+div.st-key-employee_role_card div[data-testid="stButton"] > button::after {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-top: 3px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+div.st-key-manager_role_card div[data-testid="stButton"] > button::after {
+    content: "Team insights, users and document control";
+    color: rgba(255,255,255,0.86);
+}
+
+div.st-key-employee_role_card div[data-testid="stButton"] > button::after {
+    content: "Policies, leave answers and daily automation";
+    color: #a9b6c9;
+}
+
+/* ----------------------------------------------------------
+   MANAGER HOVER
+   ---------------------------------------------------------- */
+
+div.st-key-manager_role_card div[data-testid="stButton"] > button:hover {
+    filter: brightness(1.08) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(20,184,176,0.25) !important;
+}
+
+
+/* ----------------------------------------------------------
+   EMPLOYEE HOVER
+   ---------------------------------------------------------- */
+
+div.st-key-employee_role_card div[data-testid="stButton"] > button:hover {
+    background: #1c3050 !important;
+    border-color: rgba(20,184,176,0.45) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.20) !important;
+}
+
+
+/* ----------------------------------------------------------
+   BUTTON TEXT (the real title -- "Manager" / "Employee")
+   ---------------------------------------------------------- */
+
+div.st-key-manager_role_card div[data-testid="stButton"] > button p,
+div.st-key-employee_role_card div[data-testid="stButton"] > button p {
+    color: inherit !important;
+    font-weight: 700 !important;
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+    margin: 0 !important;
+}
+
+
+/* ----------------------------------------------------------
+   MOBILE
+   ---------------------------------------------------------- */
+
+@media (max-width: 768px) {
+
+    div.st-key-manager_role_card div[data-testid="stButton"] > button,
+    div.st-key-employee_role_card div[data-testid="stButton"] > button {
+
+        min-height: 70px !important;
+        height: 70px !important;
+
+        padding: 10px 44px 10px 58px !important;
+    }
+
+    div.st-key-manager_role_card div[data-testid="stButton"] > button::before,
+    div.st-key-employee_role_card div[data-testid="stButton"] > button::before {
+        width: 34px;
+        height: 34px;
+        left: 12px;
+        font-size: 16px;
+    }
+
+    div.st-key-manager_role_card div[data-testid="stButton"] > button p,
+    div.st-key-employee_role_card div[data-testid="stButton"] > button p {
+        font-size: 14px !important;
+    }
+
+    div.st-key-manager_role_card div[data-testid="stButton"] > button::after,
+    div.st-key-employee_role_card div[data-testid="stButton"] > button::after {
+        font-size: 11.5px;
+    }
+
+    div.st-key-manager_role_card::after,
+    div.st-key-employee_role_card::after {
+        right: 14px;
+        font-size: 15px;
+    }
+}
