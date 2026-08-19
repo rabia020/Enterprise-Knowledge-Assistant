@@ -898,3 +898,120 @@ div.st-key-employee_role_card div[data-testid="stButton"] > button p {
         font-size: 15px;
     }
 }
+
+/* ==========================================================
+   FIX: WHITE-ON-WHITE TEXT
+   Several native Streamlit inputs (chat input, plain
+   st.text_input fields, the file-uploader "Upload" button)
+   render with a LIGHT/white background by default, but an
+   earlier rule in this file forced light (#f8fafc) text on
+   ALL .stTextInput / .stChatInput elements sitewide -- making
+   anything typed in them invisible. This section overrides
+   that with dark text, placed last so it wins the cascade.
+   ========================================================== */
+
+/* Plain text inputs (Create User form, Email, Username,
+   Password, etc.) -- these sit on a light background. */
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input {
+    color: #0f172a !important;
+    background: #f1f5f9 !important;
+    -webkit-text-fill-color: #0f172a !important;
+    caret-color: #0f172a !important;
+}
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    opacity: 1 !important;
+}
+
+/* Chat input ("Ask your Enterprise AI Assistant...") --
+   also renders on a light background in practice. */
+div[data-testid="stChatInput"] textarea,
+div[data-testid="stChatInput"] input,
+div[data-testid="stChatInputTextArea"] textarea {
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+    caret-color: #0f172a !important;
+}
+div[data-testid="stChatInput"] textarea::placeholder,
+div[data-testid="stChatInput"] input::placeholder,
+div[data-testid="stChatInputTextArea"] textarea::placeholder {
+    color: #64748b !important;
+    -webkit-text-fill-color: #64748b !important;
+    opacity: 1 !important;
+}
+
+/* File uploader "Upload" / "Browse files" button label --
+   light button background, needs dark text to be readable. */
+[data-testid="stFileUploader"] section button,
+[data-testid="stFileUploaderDropzone"] button {
+    color: #0f172a !important;
+}
+[data-testid="stFileUploader"] section button span,
+[data-testid="stFileUploader"] section button p,
+[data-testid="stFileUploaderDropzone"] button span,
+[data-testid="stFileUploaderDropzone"] button p {
+    color: #0f172a !important;
+}
+
+/* ==========================================================
+   FIX: SPINNER ICON COLOR
+   The rotating spinner ("AI Agent is planning and
+   executing...") renders as a dark icon that's nearly
+   invisible against the dark app background. Force it white.
+   ========================================================== */
+
+div[data-testid="stSpinner"] svg,
+div[data-testid="stSpinner"] svg circle,
+div[data-testid="stSpinner"] i {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* ==========================================================
+   FIX: st.code / st.json WHITE-ON-WHITE TEXT
+   st.code (used for "Original Request") and st.json (used
+   for "Proposed Actions") both render on a light/white
+   background box, but inherited light text from the generic
+   sitewide rules -- making the content invisible. Force dark
+   text inside both.
+   ========================================================== */
+
+div[data-testid="stCodeBlock"],
+div[data-testid="stCodeBlock"] * {
+    color: #0f172a !important;
+}
+
+div[data-testid="stJson"],
+div[data-testid="stJson"] * {
+    color: #0f172a !important;
+}
+
+/* ==========================================================
+   FIX: SELECTBOX -- CLOSED VALUE + DROPDOWN MENU OPTIONS
+   Both the selected-value text shown in the closed selectbox
+   (e.g. Role: employee/manager) and the option list that pops
+   open (rendered by BaseWeb in a separate overlay, not nested
+   inside .stSelectbox) sit on a light background but were
+   getting light text from earlier rules. Force dark text on
+   both the closed field and the open dropdown list.
+   ========================================================== */
+
+.stSelectbox div[data-baseweb="select"] * {
+    color: #0f172a !important;
+}
+
+div[data-baseweb="popover"] li,
+div[data-baseweb="popover"] li *,
+div[data-baseweb="menu"] li,
+div[data-baseweb="menu"] li *,
+ul[role="listbox"] li,
+ul[role="listbox"] li *,
+div[role="option"],
+div[role="option"] * {
+    color: #0f172a !important;
+}

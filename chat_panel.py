@@ -4,10 +4,6 @@ import streamlit as st
 
 from rag.rag_chat import ask_rag
 
-from icons import (
-    ICON_MAIL, ICON_CALENDAR, ICON_DOC, ICON_CHART, ICON_BRIEFCASE, md_html,
-)
-
 
 # ==========================================================
 # CONFIGURATION
@@ -38,9 +34,6 @@ def initialize_chat_state():
         st.session_state.review_comment = ""
         st.session_state["_clear_review_comment"] = False
 
-    if "_pending_starter_prompt" not in st.session_state:
-        st.session_state["_pending_starter_prompt"] = None
-
 
 # ==========================================================
 # DISPLAY CHAT MESSAGE
@@ -51,84 +44,6 @@ def display_message(role, content):
     with st.chat_message(role):
 
         st.markdown(content)
-
-
-# ==========================================================
-# STARTER CARDS + QUICK PILLS  (shown before any chat exists)
-# ==========================================================
-
-def _starter_card(icon_svg, label, key, prompt_text):
-    """
-    Renders one clickable starter card. Returns True if clicked.
-    Uses the invisible-button-overlay technique defined in style.css
-    (.eka-clickable-wrap) so the whole card acts as the click target.
-    """
-
-    st.markdown('<div class="eka-clickable-wrap">', unsafe_allow_html=True)
-
-    st.markdown(
-        md_html(
-            f"""
-            <div class="eka-starter-card">
-                <span class="eka-icon-badge" style="width:34px;height:34px;
-                     background:#eef2f7;color:#33415c;">{icon_svg}</span>
-                {label}
-            </div>
-            """
-        ),
-        unsafe_allow_html=True
-    )
-
-    clicked = st.button(label, key=key)
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if clicked:
-        st.session_state["_pending_starter_prompt"] = prompt_text
-
-    return clicked
-
-
-def render_conversation_starters():
-
-    st.markdown(
-        '<div class="eka-starter-label">Start a conversation</div>',
-        unsafe_allow_html=True
-    )
-
-    row1 = st.columns(2)
-    row2 = st.columns(2)
-    row3 = st.columns(2)
-
-    with row1[0]:
-        _starter_card(ICON_MAIL, "Email Assistant", "starter_email",
-                       "Show me my unread work emails and any action items.")
-    with row1[1]:
-        _starter_card(ICON_CALENDAR, "Calendar", "starter_calendar",
-                       "What's on my calendar this week?")
-    with row2[0]:
-        _starter_card(ICON_DOC, "Document Search", "starter_docs",
-                       "Search company documents for the leave policy.")
-    with row2[1]:
-        _starter_card(ICON_CHART, "Reports", "starter_reports",
-                       "Generate a summary report of this week's activity.")
-    with row3[0]:
-        _starter_card(ICON_BRIEFCASE, "HR Policies", "starter_hr",
-                       "What is the company's HR leave policy?")
-
-    st.markdown(
-        md_html(
-            f"""
-            <div class="eka-pill-row">
-                <span class="eka-pill">{ICON_MAIL} Read Mail</span>
-                <span class="eka-pill">{ICON_CALENDAR} Meetings</span>
-                <span class="eka-pill">{ICON_DOC} Search</span>
-                <span class="eka-pill">{ICON_CHART} Reports</span>
-            </div>
-            """
-        ),
-        unsafe_allow_html=True
-    )
 
 
 # ==========================================================
@@ -233,7 +148,7 @@ def render_human_review():
 
 
 # ==========================================================
-# CORE MESSAGE HANDLER (shared by chat_input + starter cards)
+# CORE MESSAGE HANDLER
 # ==========================================================
 
 def process_user_message(user_message, assistant_mode):
@@ -380,6 +295,9 @@ def process_user_message(user_message, assistant_mode):
 # ==========================================================
 
 def show_chat_panel():
+    
+
+    
 
     initialize_chat_state()
 
@@ -403,17 +321,7 @@ def show_chat_panel():
     if render_human_review():
         return
 
-    # Starter cards only shown before the first message of this session
-    if not st.session_state.messages:
-        render_conversation_starters()
-
     user_message = st.chat_input("Ask your Enterprise AI Assistant...")
-
-    # A starter card was clicked this run — treat it like typed input
-    starter_prompt = st.session_state.pop("_pending_starter_prompt", None)
-
-    if starter_prompt and not user_message:
-        user_message = starter_prompt
 
     if not user_message:
         return
